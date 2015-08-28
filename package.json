@@ -1,0 +1,32 @@
+{
+  "name": "coop-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.13.3",
+    "grunt": "^0.4.5",
+    "grunt-nodemon": "^0.4.0",
+    "node-gameloop": "^0.1.0",
+    "serve-favicon": "^2.3.0",
+    "socket.io": "^1.3.6",
+    "socket.io-client": "^1.3.6"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-nodemon": "^0.4.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evilservices/coop-game.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/evilservices/coop-game/issues"
+  },
+  "homepage": "https://github.com/evilservices/coop-game#readme"
+}

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        html, body {
+            background: #000;
+            margin:0;
+            padding:0;
+            height: 100%;
+            width:100%;
+            min-height: 100%;
+        }
+        #canvas {
+            position: absolute;
+            top: calc(50% - 150px);
+        }
+    </style>
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <canvas id="canvas" width="1000" height="300"></canvas>
+    </div>
+
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+
+    <script>
+        var socket = io();
+        var players = {};
+        var enemies = {};
+        var player_id = null;
+
+        socket.on('r', function (id) {
+            player_id = id;
+        });
+
+        socket.on('u', function (data) {
+            players = data.p;
+            enemies = data.e;
+        });
+
+
+        var keyLeft = false;
+        var keyRight = false;
+        var keyUp = false;
+        var keyDown = false;
+
+        document.onkeydown = function (e) {
+            if (e.keyCode == 37) { //Left
+                keyLeft = true;
+                updateController();
+            } else if(e.keyCode == 38) { //Up
+                keyUp = true;
+                updateController();
+            } else if(e.keyCode == 39) { //Right
+                keyRight = true;
+                updateController();
+            } else if(e.keyCode == 40) { //Down
+                keyDown = true;
+                updateController();
+            }
+        };
+
+        document.onkeyup = function (e) {
+            if (e.keyCode == 37) { //Left
+                keyLeft = false;
+                updateController();
+            } else if(e.keyCode == 38) { //Up
+                keyUp = false;
+                updateController();
+            } else if(e.keyCode == 39) { //Right
+                keyRight = false;
+                updateController();
+            } else if(e.keyCode == 40) { //Down
+                keyDown = false;
+                updateController();
+            }
+        };
+
+        window.addEventListener('resize', function(){
+            canvas.width = window.innerWidth;
+        });
+
+        function updateController() {
+            socket.emit('c', {
+                l: keyLeft,
+                r: keyRight,
+                u: keyUp,
+                d: keyDown
+            });
+        }
+
+
+
+        var player_width = 70;
+        var player_height = 120;
+
+        var zombie_width = 85;
+        var zombie_height = 120;
+
+        var world_x = 0;
+
+        var canvas = document.getElementById("canvas");
+        var context = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+
+        var background = new Image;
+        background.src = '/resources/background1.png';
+
+        var boy = new Image;
+        boy.src = '/resources/boy.png';
+        boy.width = player_width;
+        boy.height = player_height;
+
+        var zombie = new Image;
+        zombie.src = '/resources/zombie.png';
+        zombie.width = zombie_width;
+        zombie.height = zombie_height;
+
+        function update() {
+            requestAnimationFrame(update);
+
+            context.fillStyle = '#26473b';
+            fillRect(0, 0, canvas.width, canvas.height);
+
+            var background_offset = world_x % background.width;
+
+            drawImage(background, background_offset, 0, background.width, background.height);
+
+            while(background_offset < canvas.width) {
+                background_offset += background.width;
+                drawImage(background, background_offset, 0, background.width, background.height);
+            }
+
+
+            for(var i = 0; i < enemies.length; i++) {
+                var enemy = enemies[i];
+
+                drawZombie(enemy.x, enemy.y, 'r');
+            }
+
+            var my_player = null;
+
+            for(var id in players) {
+                var player = players[id];
+
+                if(id == player_id) {
+                    my_player = player;
+                } else {
+                    drawPlayer(player.x, player.y, player.d);
+                }
+            }
+
+            if(my_player) {
+                drawPlayer(my_player.x, my_player.y, player.d);
+            }
+
+            drawHUD();
+        }
+
+        function drawZombie(x, y, d, l) {
+            drawPerson(zombie, x, y, d, zombie_width, zombie_height, l, 5);
+        }
+
+        function drawPlayer(x, y, d, l) {
+            drawPerson(boy, x, y, d, player_width, player_height, l, 5);
+        }
+
+        function drawPerson(img, x, y, d, w, h, l, maxl) {
+            context.save();
+
+            if(d == 'l') {
+                context.scale(-1, 1);
+                x = -w - x;
+            }
+
+            context.translate(x, -y);
+
+            drawImage(img, 0, 0, w, h);
+
+            context.restore();
+        }
+
+        function drawImage(img, x, y, w, h) {
+            context.drawImage(img, x, canvas.height - y - img.height, w, h);
+        }
+        function fillRect(x, y, w, h) {
+            context.fillRect(x, canvas.height - y - h, w, h);
+        }
+        function strokeRect(x, y, w, h) {
+            context.strokeRect(x, canvas.height - y - h, w, h);
+        }
+
+        function drawHUD() {
+            context.fillStyle = '#3B6FDA';
+            fillRect(10, canvas.height - 40, 100, 30);
+
+            context.fillStyle = '#204da9';
+            strokeRect(10, canvas.height - 40, 100, 30);
+        }
+
+        update();
+    </script>
+</body>
+</html>
